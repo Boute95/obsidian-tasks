@@ -8,6 +8,7 @@
     import { Priority, Task } from '../Task';
     import { doAutocomplete } from '../DateAbbreviations';
     import { TasksDate } from '../Scripting/TasksDate';
+    import { Progression } from 'Progression';
 
     // These exported variables are passed in as props by TaskModal.onOpen():
     export let task: Task;
@@ -15,6 +16,7 @@
     export let statusOptions: Status[];
 
     const {
+        progressionSymbol,
         prioritySymbols,
         recurrenceSymbol,
         startDateSymbol,
@@ -25,6 +27,7 @@
     let descriptionInput: HTMLTextAreaElement;
     let editableTask: {
         description: string;
+        progression: string;
         status: Status;
         priority: 'none' | 'lowest' | 'low' | 'medium' | 'high' | 'highest';
         recurrenceRule: string;
@@ -36,6 +39,7 @@
         forwardOnly: boolean;
     } = {
         description: '',
+        progression: '',
         status: Status.TODO,
         priority: 'none',
         recurrenceRule: '',
@@ -48,6 +52,8 @@
     };
 
     let isDescriptionValid: boolean = true;
+    let parsedProgression: string = '';
+    let isProgressionValid: boolean = true;
     let parsedCreated: string = '';
     let parsedStartDate: string = '';
     let isStartDateValid: boolean = true;
@@ -185,6 +191,12 @@
     $: isDescriptionValid = editableTask.description.trim() !== '';
 
     $: {
+        const progressionObj = Progression.fromText(editableTask.progression); 
+        isProgressionValid = progressionObj !== null;
+        parsedProgression = isProgressionValid ? `<i>${editableTask.progression}</i>` : '';
+    }
+
+    $: {
         editableTask.startDate = doAutocomplete(editableTask.startDate);
         parsedStartDate = parseTypedDateForDisplayUsingFutureDate('start', editableTask.startDate);
         isStartDateValid = !parsedStartDate.includes('invalid');
@@ -256,6 +268,7 @@
 
         editableTask = {
             description,
+            progression: task.progression ? task.progression.toText() : '',
             status: task.status,
             priority,
             recurrenceRule: task.recurrence ? task.recurrence.toText() : '',
@@ -305,6 +318,8 @@
             description = GlobalFilter.getInstance().prependTo(description);
         }
 
+        const progression = Progression.fromText(editableTask.progression);
+
         const startDate = parseTypedDateForSaving(editableTask.startDate);
 
         const scheduledDate = parseTypedDateForSaving(editableTask.scheduledDate);
@@ -345,6 +360,7 @@
         const updatedTask = new Task({
             ...task,
             description,
+            progression,
             status: editableTask.status,
             priority: parsedPriority,
             recurrence,
@@ -412,6 +428,20 @@
         <!--  Recurrence and Dates  -->
         <!-- --------------------------------------------------------------------------- -->
         <div class="tasks-modal-section tasks-modal-dates">
+            <!-- --------------------------------------------------------------------------- -->
+            <!--  Progression  -->
+            <!-- --------------------------------------------------------------------------- -->
+            <label for="progression">Pro<span class="accesskey">g</span>ression</label>
+            <!-- svelte-ignore a11y-accesskey -->
+            <input
+                bind:value={editableTask.progression}
+                id="progression"
+                class="tasks-modal-error={!isProgressionValid}"
+                placeholder="0/32"
+                accesskey={accesskey("g")}
+            />
+            <code>{progressionSymbol} {@html parsedProgression}</code>
+
             <!-- --------------------------------------------------------------------------- -->
             <!--  Recurrence  -->
             <!-- --------------------------------------------------------------------------- -->

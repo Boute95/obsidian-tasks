@@ -59,6 +59,7 @@ function toInlineFieldRegex(innerFieldRegex: RegExp): RegExp {
  *   [Dataview]{@link https://github.com/blacksmithgu/obsidian-dataview}
  */
 export const DATAVIEW_SYMBOLS = {
+    progressionSymbol: 'progression::',
     prioritySymbols: {
         Highest: 'priority:: highest',
         High: 'priority:: high',
@@ -74,6 +75,7 @@ export const DATAVIEW_SYMBOLS = {
     doneDateSymbol: 'completion::',
     recurrenceSymbol: 'repeat::',
     TaskFormatRegularExpressions: {
+        progressionRegex: toInlineFieldRegex(/progression:: *(\d+})\/(\d+)/),
         priorityRegex: toInlineFieldRegex(/priority:: *(highest|high|medium|low|lowest)/),
         startDateRegex: toInlineFieldRegex(/start:: *(\d{4}-\d{2}-\d{2})/),
         createdDateRegex: toInlineFieldRegex(/created:: *(\d{4}-\d{2}-\d{2})/),

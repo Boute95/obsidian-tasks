@@ -20,6 +20,7 @@ export class LayoutOptions {
 }
 
 export type TaskLayoutComponent =
+    | 'progression'
     | 'description'
     | 'priority'
     | 'recurrenceRule'
@@ -37,6 +38,7 @@ export type TaskLayoutComponent =
  */
 export class TaskLayout {
     public defaultLayout: TaskLayoutComponent[] = [
+        'progression',
         'description',
         'priority',
         'recurrenceRule',

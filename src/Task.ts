@@ -1,6 +1,7 @@
 import type { Moment } from 'moment';
 import type { TaskLocation } from './TaskLocation';
 import type { Recurrence } from './Recurrence';
+import type { Progression } from './Progression';
 import { getSettings, getUserSelectedTaskFormat } from './Config/Settings';
 import { GlobalFilter } from './Config/GlobalFilter';
 import { StatusRegistry } from './StatusRegistry';
@@ -120,6 +121,7 @@ interface TaskComponents {
  */
 export class Task {
     public readonly status: Status;
+    public readonly progression: Progression | null;
     public readonly description: string;
     public readonly indentation: string;
     public readonly listMarker: string;
@@ -153,6 +155,7 @@ export class Task {
 
     constructor({
         status,
+        progression,
         description,
         taskLocation,
         indentation,
@@ -170,6 +173,7 @@ export class Task {
         scheduledDateIsInferred,
     }: {
         status: Status;
+        progression: Progression | null;
         description: string;
         taskLocation: TaskLocation;
         indentation: string;
@@ -188,6 +192,7 @@ export class Task {
     }) {
         this.status = status;
         this.description = description;
+        this.progression = progression;
         this.indentation = indentation;
         this.listMarker = listMarker;
         this.taskLocation = taskLocation;

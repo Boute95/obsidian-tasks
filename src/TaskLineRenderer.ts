@@ -1,5 +1,6 @@
 import type { Moment } from 'moment';
 import { Component, MarkdownRenderer } from 'obsidian';
+import { Progression } from 'Progression';
 import { GlobalFilter } from './Config/GlobalFilter';
 import { TASK_FORMATS, getSettings } from './Config/Settings';
 import { replaceTaskWithTasks } from './File';
@@ -56,7 +57,7 @@ export class FieldLayoutDetail {
 
 const dateDataAttributeCalculator: AttributeValueCalculator = (component: TaskLayoutComponent, task: Task) => {
     const date = task[component];
-    if (date instanceof window.moment) {
+    if (date instanceof window.moment && !(date instanceof Progression)) {
         const attributeValue = dateToAttribute(date);
         if (attributeValue) {
             return attributeValue;
@@ -72,6 +73,12 @@ export const FieldLayouts: { [c in TaskLayoutComponent]: FieldLayoutDetail } = {
     startDate: new FieldLayoutDetail('task-start', 'taskStart', dateDataAttributeCalculator),
     scheduledDate: new FieldLayoutDetail('task-scheduled', 'taskScheduled', dateDataAttributeCalculator),
     doneDate: new FieldLayoutDetail('task-done', 'taskDone', dateDataAttributeCalculator),
+
+    progression: new FieldLayoutDetail(
+        'task-progression',
+        FieldLayoutDetail.noAttributeName,
+        FieldLayoutDetail.noAttributeValueCalculator,
+    ),
 
     description: new FieldLayoutDetail(
         'task-description',

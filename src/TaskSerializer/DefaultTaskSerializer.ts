@@ -1,6 +1,7 @@
 import type { Moment } from 'moment';
 import { TaskLayout } from '../TaskLayout';
 import type { TaskLayoutComponent } from '../TaskLayout';
+import { Progression } from '../Progression';
 import { Recurrence } from '../Recurrence';
 import { Priority, Task, TaskRegularExpressions } from '../Task';
 import type { TaskDetails, TaskSerializer } from '.';
@@ -20,6 +21,7 @@ export interface DefaultTaskSerializerSymbols {
         Lowest: string;
         None: string;
     };
+    readonly progressionSymbol: string;
     readonly startDateSymbol: string;
     readonly createdDateSymbol: string;
     readonly scheduledDateSymbol: string;
@@ -28,6 +30,7 @@ export interface DefaultTaskSerializerSymbols {
     readonly recurrenceSymbol: string;
     readonly TaskFormatRegularExpressions: {
         priorityRegex: RegExp;
+        progressionRegex: RegExp;
         startDateRegex: RegExp;
         createdDateRegex: RegExp;
         scheduledDateRegex: RegExp;
@@ -42,6 +45,7 @@ export interface DefaultTaskSerializerSymbols {
  * Uses emojis to concisely convey meaning
  */
 export const DEFAULT_SYMBOLS: DefaultTaskSerializerSymbols = {
+    progressionSymbol: '⏩',
     prioritySymbols: {
         Highest: '🔺',
         High: '⏫',
@@ -59,6 +63,7 @@ export const DEFAULT_SYMBOLS: DefaultTaskSerializerSymbols = {
     TaskFormatRegularExpressions: {
         // The following regex's end with `$` because they will be matched and
         // removed from the end until none are left.
+        progressionRegex: /⏩ (\d+)\/(\d+)$/u,
         priorityRegex: /([🔺⏫🔼🔽⏬])$/u,
         startDateRegex: /🛫 *(\d{4}-\d{2}-\d{2})$/u,
         createdDateRegex: /➕ *(\d{4}-\d{2}-\d{2})$/u,
@@ -92,6 +97,7 @@ export class DefaultTaskSerializer implements TaskSerializer {
      */
     public componentToString(task: Task, layout: TaskLayout, component: TaskLayoutComponent) {
         const {
+            progressionSymbol,
             prioritySymbols,
             startDateSymbol,
             createdDateSymbol,
@@ -102,6 +108,8 @@ export class DefaultTaskSerializer implements TaskSerializer {
         } = this.symbols;
 
         switch (component) {
+            case 'progression':
+                return layout.options.shortMode ? '' : `${progressionSymbol} ${task.progression?.toMarkdown()} `;
             case 'description':
                 return task.description;
             case 'priority': {
@@ -197,6 +205,7 @@ export class DefaultTaskSerializer implements TaskSerializer {
         // strings are in the expected order after the description.
         let matched: boolean;
         let priority: Priority = Priority.None;
+        let progression: Progression | null = null;
         let startDate: Moment | null = null;
         let scheduledDate: Moment | null = null;
         let dueDate: Moment | null = null;
@@ -218,6 +227,16 @@ export class DefaultTaskSerializer implements TaskSerializer {
             if (priorityMatch !== null) {
                 priority = this.parsePriority(priorityMatch[1]);
                 line = line.replace(TaskFormatRegularExpressions.priorityRegex, '').trim();
+                matched = true;
+            }
+
+            const progressionMatch = line.match(TaskFormatRegularExpressions.progressionRegex);
+            if (progressionMatch !== null) {
+                progression = new Progression({
+                    total: parseFloat(progressionMatch[2]),
+                    initValue: parseFloat(progressionMatch[1]),
+                });
+                line = line.replace(TaskFormatRegularExpressions.progressionRegex, '').trim();
                 matched = true;
             }
 
@@ -296,6 +315,7 @@ export class DefaultTaskSerializer implements TaskSerializer {
         if (trailingTags.length > 0) line += ' ' + trailingTags;
 
         return {
+            progression,
             description: line,
             priority,
             startDate,
